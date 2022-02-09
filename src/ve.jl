@@ -7,7 +7,7 @@ export VECompilerTarget
 Base.@kwdef struct VECompilerTarget <: AbstractCompilerTarget
 end
 
-llvm_triple(::VECompilerTarget) = "ve-unkown-unkown"
+llvm_triple(::VECompilerTarget) = "ve-unknown-linux"
 
 function llvm_machine(target::VECompilerTarget)
     triple = llvm_triple(target)
