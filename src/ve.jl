@@ -13,11 +13,12 @@ function llvm_machine(target::VECompilerTarget)
     triple = llvm_triple(target)
     t = Target(triple=triple)
 
-    cpu = "ve"
+    cpu = ""  # tuning option for specific CPU for this target
     feat = ""
     optlevel = LLVM.API.LLVMCodeGenLevelDefault
     reloc = LLVM.API.LLVMRelocPIC
-    tm = TargetMachine(t, triple, cpu, feat, optlevel, reloc)
+    #tm = TargetMachine(t, triple, cpu, feat, optlevel, reloc)
+    tm = TargetMachine(t, triple, cpu, feat; reloc)
     asm_verbosity!(tm, true)
 
     return tm
