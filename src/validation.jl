@@ -62,11 +62,11 @@ function check_invocation(@nospecialize(job::CompilerJob))
         Core.Compiler.isconstType(dt) && continue
         real_arg_i += 1
 
-        if !isbitstype(dt)
-            throw(KernelError(job, "passing and using non-bitstype argument",
-                """Argument $arg_i to your kernel function is of type $dt, which is not isbits:
-                    $(explain_nonisbits(dt))"""))
-        end
+        #if !isbitstype(dt)
+        #    throw(KernelError(job, "passing and using non-bitstype argument",
+        #        """Argument $arg_i to your kernel function is of type $dt, which is not isbits:
+        #            $(explain_nonisbits(dt))"""))
+        #end
     end
 
     return
