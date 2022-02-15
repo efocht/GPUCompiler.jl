@@ -11,19 +11,19 @@ function check_method(@nospecialize(job::CompilerJob))
     length(ms)!=1 && throw(KernelError(job, "no unique matching method"))
     m = first(ms)
 
-    # kernels can't return values
-    if job.source.kernel
-        cache = ci_cache(job)
-        mt = method_table(job)
-        interp = GPUInterpreter(cache, mt, job.source.world)
-        rt = Base.return_types(job.source.f, job.source.tt, interp)[1]
-        if rt != Nothing
-            throw(KernelError(job, "kernel returns a value of type `$rt`",
-                """Make sure your kernel function ends in `return`, `return nothing` or `nothing`.
-                   If the returned value is of type `Union{}`, your Julia code probably throws an exception.
-                   Inspect the code with `@device_code_warntype` for more details."""))
-        end
-    end
+    ## kernels can't return values
+    #if job.source.kernel
+    #    cache = ci_cache(job)
+    #    mt = method_table(job)
+    #    interp = GPUInterpreter(cache, mt, job.source.world)
+    #    rt = Base.return_types(job.source.f, job.source.tt, interp)[1]
+    #    if rt != Nothing
+    #        throw(KernelError(job, "kernel returns a value of type `$rt`",
+    #            """Make sure your kernel function ends in `return`, `return nothing` or `nothing`.
+    #               If the returned value is of type `Union{}`, your Julia code probably throws an exception.
+    #               Inspect the code with `@device_code_warntype` for more details."""))
+    #    end
+    #end
 
     return
 end
@@ -149,9 +149,11 @@ function check_ir!(job, errors::Vector{IRError}, inst::LLVM.CallInst)
                 sym = Ptr{Cvoid}(sym)
                 sym = Base.unsafe_pointer_to_objref(sym)
                 push!(errors, (DELAYED_BINDING, bt, sym))
+                print(".... fn=", fn, "\n errors=", errors, "\n")
             catch e
                 @debug "Decoding arguments to jl_get_binding_or_error failed" inst bb=LLVM.parent(inst)
                 push!(errors, (DELAYED_BINDING, bt, nothing))
+                print("..c. fn=", fn, "\n errors=", errors, "\n")
             end
         elseif fn == "jl_invoke" || fn == "ijl_invoke"
             try
@@ -161,9 +163,11 @@ function check_ir!(job, errors::Vector{IRError}, inst::LLVM.CallInst)
                 meth = Ptr{Cvoid}(meth)
                 meth = Base.unsafe_pointer_to_objref(meth)::Core.MethodInstance
                 push!(errors, (DYNAMIC_CALL, bt, meth.def))
+                print(".... fn=", fn, "\n errors=", errors, "\n")
             catch e
                 @debug "Decoding arguments to jl_invoke failed" inst bb=LLVM.parent(inst)
                 push!(errors, (DYNAMIC_CALL, bt, nothing))
+                print("..c. fn=", fn, "\n errors=", errors, "\n")
             end
         elseif fn == "jl_apply_generic" || fn == "ijl_apply_generic"
             try
@@ -173,9 +177,11 @@ function check_ir!(job, errors::Vector{IRError}, inst::LLVM.CallInst)
                 f = Ptr{Cvoid}(f)
                 f = Base.unsafe_pointer_to_objref(f)
                 push!(errors, (DYNAMIC_CALL, bt, f))
+                print(".... fn=", fn, "\n errors=", errors, "\n")
             catch e
                 @debug "Decoding arguments to jl_apply_generic failed" inst bb=LLVM.parent(inst)
                 push!(errors, (DYNAMIC_CALL, bt, nothing))
+                print("..c. fn=", fn, "\n errors=", errors, "\n")
             end
 
         # detect calls to undefined functions
@@ -191,8 +197,10 @@ function check_ir!(job, errors::Vector{IRError}, inst::LLVM.CallInst)
 
             if Libdl.dlsym_e(libjulia[], fn) != C_NULL
                 push!(errors, (RUNTIME_FUNCTION, bt, LLVM.name(dest)))
+                print("..r. errors=", errors, "\n")
             else
                 push!(errors, (UNKNOWN_FUNCTION, bt, LLVM.name(dest)))
+                print("..u. errors=", errors, "\n")
             end
         end
 
