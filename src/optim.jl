@@ -6,7 +6,7 @@ function addTargetPasses!(pm, tm, triple)
 end
 
 # Based on Julia's optimization pipeline, minus the SLP and loop vectorizers.
-function addOptimizationPasses!(pm, opt_level=2)
+function addOptimizationPasses!(pm, opt_level=3)
     # compare with the using Julia's optimization pipeline directly:
     #ccall(:jl_add_optimization_passes, Cvoid,
     #      (LLVM.API.LLVMPassManagerRef, Cint, Cint),
@@ -137,7 +137,8 @@ function addOptimizationPasses!(pm, opt_level=2)
     cfgsimplification!(pm)  # See note above, don't hoist instructions before LV
     loop_deletion!(pm)
     instruction_combining!(pm)
-    loop_vectorize!(pm)
+    #loop_vectorize!(pm)
+    rv_loop_vectorize!(pm)
     loop_load_elimination!(pm)
     # Cleanup after LV pass
     if LLVM.version() >= v"12"
