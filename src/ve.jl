@@ -31,15 +31,15 @@ runtime_slug(job::CompilerJob{VECompilerTarget}) = "ve"
 const ve_intrinsics = () # TODO: ("vprintf", "__assertfail", "malloc", "free")
 isintrinsic(::CompilerJob{VECompilerTarget}, fn::String) = in(fn, gcn_intrinsics)
 
-function process_entry!(job::CompilerJob{VECompilerTarget}, mod::LLVM.Module, entry::LLVM.Function)
-    entry = invoke(process_entry!, Tuple{CompilerJob, LLVM.Module, LLVM.Function}, job, mod, entry)
-
-    if job.source.kernel
-        # calling convention
-        callconv!(entry, LLVM.API.LLVMCCallConv)
-    end
-
-    entry
-end
+#function process_entry!(job::CompilerJob{VECompilerTarget}, mod::LLVM.Module, entry::LLVM.Function)
+#    entry = invoke(process_entry!, Tuple{CompilerJob, LLVM.Module, LLVM.Function}, job, mod, entry)
+#
+#    if job.source.kernel
+#        # calling convention
+#        #callconv!(entry, LLVM.API.LLVMCCallConv)
+#    end
+#
+#    entry
+#end
 
 
